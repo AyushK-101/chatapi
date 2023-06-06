@@ -89,6 +89,8 @@ app.post('/login', async (req,res) => {
           id: foundUser._id,
         });
       });
+    } else {
+      res.status(401).json('Incorrect username or password');
     }
   }
 });
@@ -99,6 +101,11 @@ app.post('/logout', (req,res) => {
 
 app.post('/register', async (req,res) => {
   const {username,password} = req.body;
+
+  const existingUser = await User.findOne({ username });
+  if (existingUser) {
+    res.status(400).json('User already exists');
+  } else {
   try {
     const hashedPassword = bcrypt.hashSync(password, bcryptSalt);
     const createdUser = await User.create({
@@ -113,8 +120,9 @@ app.post('/register', async (req,res) => {
     });
   } catch(err) {
     if (err) throw err;
-    res.status(500).json('error');
+    res.status(500).json('Error registering user');
   }
+ }
 });
 
 const server = app.listen(process.env.PORT || 4040);
